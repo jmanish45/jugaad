@@ -1,0 +1,46 @@
+# N-Queens using Backtracking
+
+def is_safe(board, row, col, n):
+    # Check column
+    for i in range(row):
+        if board[i] == col:
+            return False
+
+    # Check diagonal 1
+    for i, j in zip(range(row, -1, -1), range(col, -1, -1)):
+        if board[i] == j:
+            return False
+
+    # Check diagonal 2
+    for i, j in zip(range(row, -1, -1), range(col, n)):
+        if board[i] == j:
+            return False
+
+    return True
+
+
+def solve_nqueens_backtracking(n):
+    board = [-1] * n  # board[i] = column position of queen in row i
+    solutions = []
+
+    def backtrack(row):
+        if row == n:
+            solutions.append(board.copy())
+            return
+
+        for col in range(n):
+            if is_safe(board, row, col, n):
+                board[row] = col
+                backtrack(row + 1)
+                board[row] = -1
+
+    backtrack(0)
+    return solutions
+
+
+# Example usage
+n = 4
+sols = solve_nqueens_backtracking(n)
+print("Solutions (Backtracking):")
+for sol in sols:
+    print(sol)
