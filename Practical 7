@@ -1,0 +1,70 @@
+CREATE TABLE Borrower (
+    Roll_no INT,
+    Name VARCHAR(50),
+    Date_of_Issue DATE,
+    Name_of_Book VARCHAR(100),
+    Status CHAR(1)
+);
+
+CREATE TABLE Fine (
+    Roll_no INT,
+    Date_of_Fine DATE,
+    Amt INT
+);
+
+INSERT INTO Borrower VALUES
+(1, 'Amit', '2024-10-01', 'DBMS Book', 'I'),
+(2, 'Riya', '2024-09-20', 'OS Book', 'I');
+
+DELIMITER $$
+
+CREATE PROCEDURE return_book(
+    IN p_roll INT,
+    IN p_book VARCHAR(100)
+)
+BEGIN
+    DECLARE v_issue_date DATE;
+    DECLARE v_days INT;
+    DECLARE v_fine INT DEFAULT 0;
+
+    -- Get issue date
+    SELECT Date_of_Issue INTO v_issue_date
+    FROM Borrower
+    WHERE Roll_no = p_roll AND Name_of_Book = p_book
+    LIMIT 1;
+
+    -- Calculate days
+    SET v_days = DATEDIFF(CURDATE(), v_issue_date);
+
+    -- Fine calculation
+    IF v_days > 30 THEN
+        SET v_fine = v_days * 50;
+    ELSEIF v_days BETWEEN 15 AND 30 THEN
+        SET v_fine = v_days * 5;
+    ELSE
+        SET v_fine = 0;
+    END IF;
+
+    -- Update status from I → R
+    UPDATE Borrower
+    SET Status = 'R'
+    WHERE Roll_no = p_roll AND Name_of_Book = p_book;
+
+    -- Insert fine if applicable
+    IF v_fine > 0 THEN
+        INSERT INTO Fine(Roll_no, Date_of_Fine, Amt)
+        VALUES(p_roll, CURDATE(), v_fine);
+    END IF;
+
+END $$
+
+DELIMITER ;
+
+CALL return_book(1, 'DBMS Book');
+
+CALL return_book(2, 'OS Book');
+
+SELECT * FROM Borrower;
+
+SELECT * FROM Fine;
+
