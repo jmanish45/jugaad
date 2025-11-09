@@ -1,36 +1,70 @@
-SET SERVEROUTPUT ON;
+-- ===========================================
+-- CREATE TABLES (Skip if already created)
+-- ===========================================
+CREATE TABLE N_Roll_Call (
+    roll_no INT,
+    name VARCHAR(50)
+);
 
-DECLARE
-    -- parameterized cursor
-    CURSOR c_data(p_roll NUMBER) IS
-        SELECT roll_no, name
-        FROM N_Roll_Call
-        WHERE roll_no = p_roll;
+CREATE TABLE O_Roll_Call (
+    roll_no INT PRIMARY KEY,
+    name VARCHAR(50)
+);
 
-    v_roll NUMBER;
-    v_name VARCHAR2(50);
+-- ===========================================
+-- SAMPLE DATA (Optional)
+-- ===========================================
+INSERT INTO N_Roll_Call VALUES (1, 'Riya');
+INSERT INTO N_Roll_Call VALUES (2, 'Aman');
+INSERT INTO N_Roll_Call VALUES (3, 'Sana');
+INSERT INTO N_Roll_Call VALUES (4, 'Nitin');
 
+-- ===========================================
+-- PROCEDURE: COPY VALUES FROM N_Roll_Call TO O_Roll_Call
+-- USING CURSOR (Oracle-style logic converted)
+-- ===========================================
+DELIMITER $$
+
+CREATE PROCEDURE copy_rolls()
 BEGIN
-    -- loop all new roll numbers
-    FOR rec IN (SELECT roll_no FROM N_Roll_Call) LOOP
-        
-        OPEN c_data(rec.roll_no);
-        FETCH c_data INTO v_roll, v_name;
+    DECLARE v_roll INT;
+    DECLARE v_name VARCHAR(50);
+    DECLARE done INT DEFAULT 0;
 
-        IF c_data%FOUND THEN
-            -- check if exists
-            IF NOT EXISTS (
-                SELECT 1 FROM O_Roll_Call WHERE roll_no = v_roll
-            ) THEN
-                INSERT INTO O_Roll_Call VALUES(v_roll, v_name);
-                DBMS_OUTPUT.PUT_LINE('Inserted: ' || v_roll);
-            ELSE
-                DBMS_OUTPUT.PUT_LINE('Skipped: ' || v_roll || ' exists');
-            END IF;
+    -- Cursor to iterate through N_Roll_Call
+    DECLARE cur CURSOR FOR 
+        SELECT roll_no, name FROM N_Roll_Call;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    OPEN cur;
+
+    read_loop: LOOP
+        FETCH cur INTO v_roll, v_name;
+
+        IF done = 1 THEN
+            LEAVE read_loop;
         END IF;
 
-        CLOSE c_data;
+        -- Insert only if NOT EXISTS in O_Roll_Call
+        IF NOT EXISTS (SELECT 1 FROM O_Roll_Call WHERE roll_no = v_roll) THEN
+            INSERT INTO O_Roll_Call VALUES (v_roll, v_name);
+        END IF;
+
     END LOOP;
 
-END;
-/
+    CLOSE cur;
+
+END $$
+
+DELIMITER ;
+
+-- ===========================================
+-- RUN PROCEDURE
+-- ===========================================
+CALL copy_rolls();
+
+-- ===========================================
+-- VIEW RESULT
+-- ===========================================
+SELECT * FROM O_Roll_Call;
