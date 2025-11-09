@@ -1,0 +1,36 @@
+SET SERVEROUTPUT ON;
+
+DECLARE
+    -- parameterized cursor
+    CURSOR c_data(p_roll NUMBER) IS
+        SELECT roll_no, name
+        FROM N_Roll_Call
+        WHERE roll_no = p_roll;
+
+    v_roll NUMBER;
+    v_name VARCHAR2(50);
+
+BEGIN
+    -- loop all new roll numbers
+    FOR rec IN (SELECT roll_no FROM N_Roll_Call) LOOP
+        
+        OPEN c_data(rec.roll_no);
+        FETCH c_data INTO v_roll, v_name;
+
+        IF c_data%FOUND THEN
+            -- check if exists
+            IF NOT EXISTS (
+                SELECT 1 FROM O_Roll_Call WHERE roll_no = v_roll
+            ) THEN
+                INSERT INTO O_Roll_Call VALUES(v_roll, v_name);
+                DBMS_OUTPUT.PUT_LINE('Inserted: ' || v_roll);
+            ELSE
+                DBMS_OUTPUT.PUT_LINE('Skipped: ' || v_roll || ' exists');
+            END IF;
+        END IF;
+
+        CLOSE c_data;
+    END LOOP;
+
+END;
+/
