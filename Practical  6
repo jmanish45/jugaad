@@ -1,0 +1,32 @@
+use retailDB
+
+// ------- SAMPLE DATA (Optional for testing) -------
+db.customer.insertMany([
+  { cid: 1, cname: "Amit", amount: 500,  product_name: "Shoes" },
+  { cid: 1, cname: "Amit", amount: 300,  product_name: "T-Shirt" },
+  { cid: 2, cname: "Riya", amount: 800,  product_name: "Jeans" },
+  { cid: 2, cname: "Riya", amount: 200,  product_name: "Socks" },
+  { cid: 3, cname: "Nitin", amount: 1000, product_name: "Jacket" }
+]);
+
+// ---------------- MAP FUNCTION ----------------
+var mapFunction = function () {
+    emit(this.cname, this.amount);
+};
+
+// ---------------- REDUCE FUNCTION ----------------
+var reduceFunction = function (key, values) {
+    return Array.sum(values);
+};
+
+// ---------------- MAPREDUCE EXECUTION ----------------
+db.customer.mapReduce(
+    mapFunction,
+    reduceFunction,
+    {
+        out: "total_spent_by_customer"
+    }
+);
+
+// ---------------- SHOW RESULTS ----------------
+db.total_spent_by_customer.find();
