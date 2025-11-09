@@ -1,0 +1,117 @@
+
+CREATE DATABASE IF NOT EXISTS bankdb;
+USE bankdb;
+
+
+DROP TABLE IF EXISTS Borrower, Depositor, Loan, Account, customer, branch;
+
+
+CREATE TABLE branch (
+  branch_name VARCHAR(50) PRIMARY KEY,
+  branch_city VARCHAR(50) NOT NULL,
+  assets_amt DECIMAL(15,2) 
+) ;
+
+
+CREATE TABLE Account (
+  acc_no INT PRIMARY KEY,
+  branch_name VARCHAR(50) NOT NULL,
+  balance DECIMAL(15,2) NOT NULL,
+  FOREIGN KEY (branch_name) REFERENCES branch(branch_name)
+) 
+
+
+CREATE TABLE customer (
+  cust_name VARCHAR(100) PRIMARY KEY,
+  cust_street VARCHAR(100),
+  cust_city VARCHAR(50)
+);
+
+CREATE TABLE Depositor (
+  cust_name VARCHAR(100),
+  acc_no INT,
+  PRIMARY KEY (cust_name, acc_no),
+  FOREIGN KEY (cust_name) REFERENCES customer(cust_name),
+  FOREIGN KEY (acc_no) REFERENCES Account(acc_no)
+) ;
+
+CREATE TABLE Loan (
+  acc_no INT,
+  loan_no INT PRIMARY KEY,
+  branch_name VARCHAR(50),
+  amount DECIMAL(15,2) CHECK (amount >= 0),
+  FOREIGN KEY (branch_name) REFERENCES branch(branch_name)
+) ENGINE=InnoDB;
+
+CREATE TABLE Borrower (
+  cust_name VARCHAR(100),
+  loan_no INT,
+  PRIMARY KEY (cust_name, loan_no),
+  FOREIGN KEY (cust_name) REFERENCES customer(cust_name),
+  FOREIGN KEY (loan_no) REFERENCES Loan(loan_no)
+) ;
+
+-- sample inserts
+INSERT INTO branch VALUES
+('Pimpri','Pimpri',500000.00),
+('Akurdi','Akurdi',300000.00),
+('Kothrud','Pune',200000.00);
+
+INSERT INTO Account VALUES
+(101,'Pimpri',15000.00),
+(102,'Pimpri',8000.00),
+(103,'Akurdi',20000.00),
+(104,'Kothrud',5000.00);
+
+INSERT INTO customer VALUES
+('Riya','MG Road','Pune'),
+('Aman','BTM','Pune'),
+('Sana','Model Colony','Pune'),
+('Nitin','Akurdi Road','Pune');
+
+INSERT INTO Depositor VALUES
+('Riya',101),
+('Aman',102),
+('Sana',103),
+('Nitin',104);
+
+INSERT INTO Loan VALUES
+(201,301,'Pimpri',15000.00),
+(202,302,'Pimpri',9000.00),
+(103,303,'Akurdi',18000.00);
+
+INSERT INTO Borrower VALUES
+('Riya',301),
+('Sana',303);
+
+-- Queries (2..11)
+SELECT DISTINCT branch_name FROM Loan;
+
+SELECT loan_no FROM Loan WHERE branch_name='Pimpri' AND amount>12000;
+
+SELECT b.cust_name, l.loan_no, l.amount FROM Borrower b JOIN Loan l ON b.loan_no = l.loan_no;
+
+SELECT DISTINCT b.cust_name FROM Borrower b JOIN Loan l ON b.loan_no = l.loan_no WHERE l.branch_name='Akurdi' ORDER BY b.cust_name;
+
+SELECT DISTINCT cust_name FROM Depositor
+UNION
+SELECT DISTINCT cust_name FROM Borrower;
+
+SELECT d.cust_name FROM Depositor d INNER JOIN Borrower b ON d.cust_name = b.cust_name GROUP BY d.cust_name;
+
+SELECT AVG(balance) FROM Account WHERE branch_name='Pimpri';
+
+SELECT branch_name, AVG(balance) FROM Account GROUP BY branch_name;
+
+SELECT branch_name, AVG(balance) FROM Account GROUP BY branch_name HAVING AVG(balance) > 12000;
+
+SELECT SUM(amount) FROM Loan;
+
+
+SELECT b.cust_name
+FROM Borrower b 
+JOIN
+Loan l
+ON b.loan_no = l.loan_no
+where l.branch_name = "Akurdi"
+order by b.cust_name ASC;
