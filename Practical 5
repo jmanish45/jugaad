@@ -1,0 +1,60 @@
+use collegeDB
+
+// ---------- CREATE COLLECTIONS WITH SAMPLE DATA ----------
+db.Teachers.insertMany([
+  { Tname: "Praveen", dno: 1, dname: "COMP", experience: 5, salary: 12000, date_of_joining: "2015-06-10" },
+  { Tname: "Asha", dno: 2, dname: "IT", experience: 7, salary: 15000, date_of_joining: "2014-03-15" },
+  { Tname: "Rohan", dno: 3, dname: "E&TC", experience: 4, salary: 9000, date_of_joining: "2017-08-01" },
+  { Tname: "Meera", dno: 4, dname: "COMP", experience: 2, salary: 10000, date_of_joining: "2020-01-12" }
+]);
+
+db.Students.insertMany([
+  { Sname: "Amit", roll_no: 1, class: "SE-A" },
+  { Sname: "XYZ", roll_no: 2, class: "TE-B" },
+  { Sname: "Sara", roll_no: 3, class: "FE-C" }
+]);
+
+// ---------- 1. Teachers alphabetically ----------
+db.Teachers.find().sort({ Tname: 1 });
+
+// ---------- 2. Teachers of COMP department ----------
+db.Teachers.find({ dname: "COMP" });
+
+// ---------- 3. Teachers of COMP, IT, E&TC ----------
+db.Teachers.find({ dname: { $in: ["COMP", "IT", "E&TC"] } });
+
+// ---------- 4. Above departments with salary >=10000 ----------
+db.Teachers.find({
+  dname: { $in: ["COMP", "IT", "E&TC"] },
+  salary: { $gte: 10000 }
+});
+
+// ---------- 6. Student with roll_no = 2 OR Sname = 'xyz' ----------
+db.Students.find({
+  $or: [
+    { roll_no: 2 },
+    { Sname: "xyz" }
+  ]
+});
+
+// ---------- 7. Update experience of Praveen to 10 (with upsert) ----------
+db.Teachers.updateOne(
+  { Tname: "Praveen" },
+  { $set: { experience: 10 } },
+  { upsert: true }
+);
+
+// ---------- 9. Update IT department teachers to COMP ----------
+db.Teachers.updateMany(
+  { dname: "IT" },
+  { $set: { dname: "COMP" } }
+);
+
+// ---------- 10. Show teacher's name + experience ----------
+db.Teachers.find({}, { Tname: 1, experience: 1, _id: 0 });
+
+// ---------- 11. Delete teachers of IT department ----------
+db.Teachers.deleteMany({ dname: "IT" });
+
+// ---------- 12. First 3 teacher documents sorted ascending, pretty ----------
+db.Teachers.find().sort({ Tname: 1 }).limit(3).pretty();
