@@ -1,0 +1,36 @@
+-- Create and select database
+DROP DATABASE studentDB IF EXISTS;
+CREATE DATABASE studentDB;
+USE studentDB;
+
+-- Create Students table
+CREATE TABLE Students (
+    student_id INT PRIMARY KEY AUTO_INCREMENT,
+    student_name VARCHAR(100),
+    class VARCHAR(20),
+    address VARCHAR(200),
+    grades VARCHAR(10),
+    subject_name VARCHAR(50),
+    attendance INT
+);
+
+-- Insert data
+INSERT INTO Students (student_name, class, address, grades, subject_name, attendance) VALUES
+('Riya', 'SE-A', 'Pune', 'A', 'DBMS', 90),
+('Aman', 'TE-B', 'Mumbai', 'B', 'OS', 75),
+('Sara', 'FE-C', 'Delhi', 'A', 'Maths', 85),
+('Nitin', 'SE-A', 'Nagpur', 'C', 'DBMS', 60);
+
+-- Create views
+CREATE VIEW student_performance AS
+SELECT student_name, class, subject_name, grades
+FROM Students;
+
+CREATE VIEW attendance_summary AS
+SELECT student_name, class, subject_name, attendance
+FROM Students
+WHERE attendance IS NOT NULL;
+
+-- Create index
+CREATE INDEX idx_student_name
+ON Students(student_name);
