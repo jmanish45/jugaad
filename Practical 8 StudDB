@@ -26,6 +26,7 @@ CREATE VIEW student_performance AS
 SELECT student_name, class, subject_name, grades
 FROM Students;
 
+
 CREATE VIEW attendance_summary AS
 SELECT student_name, class, subject_name, attendance
 FROM Students
@@ -34,3 +35,4 @@ WHERE attendance IS NOT NULL;
 -- Create index
 CREATE INDEX idx_student_name
 ON Students(student_name);
+SHOW INDEX FROM student_records;
